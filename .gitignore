@@ -123,4 +123,7 @@ dist
 # Ignore all local history of files
 .history
 
+# package-lock
+package-lock.json
+
 # End of https://www.toptal.com/developers/gitignore/api/node,visualstudiocode
