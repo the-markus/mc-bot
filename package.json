@@ -1,0 +1,19 @@
+{
+  "name": "mc-bot",
+  "version": "1.0.0",
+  "description": "A bot spammer for mc",
+  "main": "mc-bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "The_Markus",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "minecraft-protocol": "https://github.com/the-markus/node-minecraft-protocol/tarball/master",
+    "mineflayer": "^2.24.0",
+    "prismarine-tokens": "^1.0.3",
+    "prompt": "^1.0.0",
+    "uuid": "^8.2.0"
+  }
+}
