@@ -1,6 +1,8 @@
 var mineflayer = require('mineflayer');
 var altservice = require('./altservice');
 const { v4: uuidv4 } = require('uuid');
+const readline = require('readline');
+var colors = require('colors');
 
 const ServiceType = {
     TheAltening: 0,
@@ -9,20 +11,23 @@ const ServiceType = {
     PWD: 3
 }
 
+var disconnected = [];
 var config = { bots: [] };
 var ct = uuidv4().split("-").join("");
 
-console.log(" _____ ______   ________                ________  ________  _________   ");
-console.log("|\\   _ \\  _   \\|\\   ____\\              |\\   __  \\|\\   __  \\|\\___   ___\\ ");
-console.log("\\ \\  \\\\\\__\\ \\  \\ \\  \\___|  ____________\\ \\  \\|\\ /\\ \\  \\|\\  \\|___ \\  \\_| ");
-console.log(" \\ \\  \\\\|__| \\  \\ \\  \\    |\\____________\\ \\   __  \\ \\  \\\\\\  \\   \\ \\  \\  ");
-console.log("  \\ \\  \\    \\ \\  \\ \\  \\___\\|____________|\\ \\  \\|\\  \\ \\  \\\\\\  \\   \\ \\  \\ ");
-console.log("   \\ \\__\\    \\ \\__\\ \\_______\\             \\ \\_______\\ \\_______\\   \\ \\__\\");
-console.log("    \\|__|     \\|__|\\|_______|              \\|_______|\\|_______|    \\|__|");
-console.log("                                                                        ");
+console.log(" _____ ______   ________                ________  ________  _________   ".rainbow);
+console.log("|\\   _ \\  _   \\|\\   ____\\              |\\   __  \\|\\   __  \\|\\___   ___\\ ".rainbow);
+console.log("\\ \\  \\\\\\__\\ \\  \\ \\  \\___|  ____________\\ \\  \\|\\ /\\ \\  \\|\\  \\|___ \\  \\_| ".rainbow);
+console.log(" \\ \\  \\\\|__| \\  \\ \\  \\    |\\____________\\ \\   __  \\ \\  \\\\\\  \\   \\ \\  \\  ".rainbow);
+console.log("  \\ \\  \\    \\ \\  \\ \\  \\___\\|____________|\\ \\  \\|\\  \\ \\  \\\\\\  \\   \\ \\  \\ ".rainbow);
+console.log("   \\ \\__\\    \\ \\__\\ \\_______\\             \\ \\_______\\ \\_______\\   \\ \\__\\".rainbow);
+console.log("    \\|__|     \\|__|\\|_______|              \\|_______|\\|_______|    \\|__|".rainbow);
+console.log("                                                                        ".rainbow);
 console.log("                                                                        ");
 console.log("Starting MC-BOT...");
 console.log("Welcome! Please enter the required fields:");
+
+var rl = null;
 
 const prompt = require('prompt');
 prompt.message = "";
@@ -147,22 +152,29 @@ function startbots() {
             }
 
             var bot = mineflayer.createBot(options);
-            bindevents(bot, options, i, alt);
-            config.bots.push(bot);
+            bindevents(bot, options, i);
+            config.bots.push({ options: options, bot: bot });
         });
     });
 }
 
-function bindevents(bot, options, i, alt) {
-    if (i == 0) {
-        bot.on('chat', function (username, message) {
-            if (username === bot.username) return;
+function bindevents(bot, options, i) {
+    bot.on('chat', function (username, message) {
+        if (username === bot.username) return;
+        var index = config.bots.findIndex(w => w.bot.username == bot.username);
+        if (index == 0) {
             console.log(`${username}: ${message}`);
-        });
-    }
+        } else if (disconnected.includes(config.bots[index - 1].bot.username)) {
+            console.log(`${username}: ${message}`);
+        }
+    });
 
     bot.on('login', function () {
         console.log(`Bot ${bot.username} logged in`);
+
+        if (disconnected.includes(bot.username)) {
+            disconnected.splice(disconnected.indexOf(bot.username), 1);
+        }
 
         if (config.bots.length < config.number_of_bots) {
             startbots();
@@ -172,14 +184,25 @@ function bindevents(bot, options, i, alt) {
     });
 
     bot.on('kicked', function (reason, loggedin) {
+        if (!disconnected.includes(bot.username)) {
+            disconnected.push(bot.username);
+        }
         console.log(`Bot ${bot.username} was kicked because of ${reason}`);
         if (JSON.parse(reason).translate != undefined) {
             console.log("Seems like the bot cannot join the server, aborting.");
             return;
+        } else if (JSON.parse(reason).text != undefined) {
+            if (reason.includes("ban")) {
+                console.log("Seems like the bot got banned, you can manually reconnect with \"reconnect\"");
+                return;
+            }
         }
-        console.log(`Reconnecting bot ${bot.username}...`);
-        bot = mineflayer.createBot(options);
-        bindevents(bot, options, i);
+        console.log(`Reconnecting bot ${bot.username} in 10 seconds...`);
+        setTimeout(() => {
+            disconnected.splice(disconnected.indexOf(bot.username), 1);
+            bot = mineflayer.createBot(options);
+            bindevents(bot, options, i);
+        }, 10000);
     });
 
     bot.on('error', err => console.log("Error on " + bot.username + ": " + err));
@@ -191,32 +214,80 @@ process.on("SIGINT", function () {
 
 process.on('exit', function (code) {
     console.log("Exiting, stopping bots...");
-    config.bots.forEach(bot => {
-        bot.end();
+    config.bots.forEach(wrap => {
+        wrap.bot.end();
     });
 });
 
 function listenForCommands() {
-    prompt.get([' '], function (err, result) {
-        if (err) { return console.error(err); }
-        var cmd = result[' '].split(' ')[0];
-        var args = result[' '].split(' ').splice(1, result[' '].length - 1);
+
+    if (rl == null) {
+        rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+    }
+
+    rl.question('> '.gray, (answer) => {
+        var args = answer.split(' ');
+        var cmd = args[0];
+        args.splice(0, 1);
         switch (cmd) {
             case "help":
                 console.log("Commands:");
                 console.log("   -help: Displays help");
                 console.log("   -stop: Stops all bots");
-                console.log("   -say: Let them bots speak");
+                console.log("   -say <msg>: Let them bots speak");
+                console.log("   -botsay <#> <msg>: Let one bot speak");
+                console.log("   -reconnect [#]: Manually reconnect all/one disconnected bots");
+                console.log("   -list: List all bots");
                 break;
             case "say":
-                if(args.length > 0) {
-                    config.bots.forEach(bot => {
-                        bot.chat(args.join(" "));
+                if (args.length > 0) {
+                    config.bots.forEach(wrap => {
+                        wrap.bot.chat(args.join(" "));
                     });
                 } else {
                     console.log("Usage: say <msg>")
                 }
-                
+                break;
+            case "botsay":
+                if (args.length > 1) {
+                    if (parseInt(args[0]) >= config.bots.length) {
+                        console.log("Bot not found");
+                        break;
+                    }
+                    config.bots[parseInt(args[0])].bot.chat(args.slice(1, args.length).join(" "));
+                } else {
+                    console.log("Usage: botsay <#> <msg>")
+                }
+                break;
+            case "reconnect":
+                if (args.length == 0) {
+                    config.bots.forEach(wrap => {
+                        if (disconnected.includes(wrap.bot.username)) {
+                            console.log(`Reconnecting bot ${wrap.bot.username}...`);
+                            wrap.bot = mineflayer.createBot(wrap.bot.options);
+                            bindevents(wrap.bot, wrap.bot.options, i);
+                        }
+                    });
+                } else if (args.length == 1) {
+                    if (parseInt(args[0]) >= config.bots.length) {
+                        console.log("Bot not found");
+                        break;
+                    }
+                    var wrap = config.bots[parseInt(args[0])];
+                    wrap.bot.end();
+                    wrap.bot = mineflayer.createBot(wrap.options);
+                    bindevents(wrap.bot, wrap.options, parseInt(args[0]));
+                } else {
+                    console.log("Usage: reconnect [#]")
+                }
+                break;
+            case "list":
+                for (let i = 0; i < config.bots.length; i++) {
+                    console.log("#" + i + ": " + config.bots[i].bot.username)
+                }
                 break;
             case "stop":
                 process.exit();
