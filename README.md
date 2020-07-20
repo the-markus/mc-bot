@@ -6,4 +6,6 @@ Implemented features:
 * MCLeaks authenticator
 * TheAltening authenticator
 * Broadcast (Let all bots speak)
+* Botsay (Let one bot say something)
 * Auto reconnect on kick
+* Manual reconnect
