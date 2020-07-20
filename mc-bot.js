@@ -239,7 +239,7 @@ function listenForCommands() {
                 console.log("   -stop: Stops all bots");
                 console.log("   -say <msg>: Let them bots speak");
                 console.log("   -botsay <#> <msg>: Let one bot speak");
-                console.log("   -reconnect [#]: Manually reconnect all/one disconnected bots");
+                console.log("   -reconnect [#]: Manually reconnect all/one bot(s)");
                 console.log("   -list: List all bots");
                 break;
             case "say":
@@ -248,7 +248,7 @@ function listenForCommands() {
                         wrap.bot.chat(args.join(" "));
                     });
                 } else {
-                    console.log("Usage: say <msg>")
+                    console.log("Usage: say <msg>");
                 }
                 break;
             case "botsay":
@@ -259,7 +259,7 @@ function listenForCommands() {
                     }
                     config.bots[parseInt(args[0])].bot.chat(args.slice(1, args.length).join(" "));
                 } else {
-                    console.log("Usage: botsay <#> <msg>")
+                    console.log("Usage: botsay <#> <msg>");
                 }
                 break;
             case "reconnect":
@@ -281,12 +281,12 @@ function listenForCommands() {
                     wrap.bot = mineflayer.createBot(wrap.options);
                     bindevents(wrap.bot, wrap.options, parseInt(args[0]));
                 } else {
-                    console.log("Usage: reconnect [#]")
+                    console.log("Usage: reconnect [#]");
                 }
                 break;
             case "list":
                 for (let i = 0; i < config.bots.length; i++) {
-                    console.log("#" + i + ": " + config.bots[i].bot.username)
+                    console.log("#" + i + ": " + config.bots[i].bot.username);
                 }
                 break;
             case "stop":
