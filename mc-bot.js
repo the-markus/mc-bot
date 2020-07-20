@@ -237,8 +237,8 @@ function listenForCommands() {
                 console.log("Commands:");
                 console.log("   -help: Displays help");
                 console.log("   -stop: Stops all bots");
-                console.log("   -say <msg>: Let them bots speak");
-                console.log("   -botsay <#> <msg>: Let one bot speak");
+                console.log("   -say <msg/cmd>: Let them bots speak");
+                console.log("   -botsay <#> <msg/cmd>: Let one bot speak");
                 console.log("   -reconnect [#]: Manually reconnect all/one bot(s)");
                 console.log("   -list: List all bots");
                 break;
@@ -248,7 +248,7 @@ function listenForCommands() {
                         wrap.bot.chat(args.join(" "));
                     });
                 } else {
-                    console.log("Usage: say <msg>");
+                    console.log("Usage: say <msg/cmd>");
                 }
                 break;
             case "botsay":
@@ -259,7 +259,7 @@ function listenForCommands() {
                     }
                     config.bots[parseInt(args[0])].bot.chat(args.slice(1, args.length).join(" "));
                 } else {
-                    console.log("Usage: botsay <#> <msg>");
+                    console.log("Usage: botsay <#> <msg/cmd>");
                 }
                 break;
             case "reconnect":
@@ -288,6 +288,9 @@ function listenForCommands() {
                 for (let i = 0; i < config.bots.length; i++) {
                     console.log("#" + i + ": " + config.bots[i].bot.username);
                 }
+                break;
+            case "secret":
+                console.log("You are not ready for the secret".trap);
                 break;
             case "stop":
                 process.exit();
