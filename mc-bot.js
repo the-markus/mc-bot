@@ -1,4 +1,7 @@
 var mineflayer = require('mineflayer');
+const pathfinder = require('mineflayer-pathfinder').pathfinder;
+const Movements = require('mineflayer-pathfinder').Movements;
+const { GoalNear } = require('mineflayer-pathfinder').goals;
 var altservice = require('./altservice');
 const { v4: uuidv4 } = require('uuid');
 const readline = require('readline');
@@ -159,6 +162,8 @@ function startbots() {
 }
 
 function bindevents(bot, options, i) {
+    bot.loadPlugin(pathfinder);
+
     bot.on('chat', function (username, message) {
         if (username === bot.username) return;
         var index = config.bots.findIndex(w => w.bot.username == bot.username);
@@ -240,6 +245,8 @@ function listenForCommands() {
                 console.log("   -say <msg/cmd>: Let them bots speak");
                 console.log("   -botsay <#> <msg/cmd>: Let one bot speak");
                 console.log("   -reconnect [#]: Manually reconnect all/one bot(s)");
+                console.log("   -goto [#] <player>: Let one/all bot(s) go to player");
+                console.log("   -new: Create new bot");
                 console.log("   -list: List all bots");
                 break;
             case "say":
@@ -289,6 +296,53 @@ function listenForCommands() {
                     console.log("#" + i + ": " + config.bots[i].bot.username);
                 }
                 break;
+            case "goto":
+                if(args.length == 1) {
+                    var name = args[0];
+                    for (let i = 0; i < config.bots.length; i++) {
+                        var b = config.bots[i].bot;
+                        const mcData = require('minecraft-data')(b.version);
+                        const defaultMove = new Movements(b, mcData)
+                        if(name == b.username) return;
+
+                        const target = b.players[name] ? b.players[name].entity : null;
+                        if(!target) {
+                            console.log(`Bot ${b.username} cannot see player ${name} on the map`);
+                        } else {
+                            const p = target.position;
+                            b.pathfinder.setMovements(defaultMove);
+                            b.pathfinder.setGoal(new GoalNear(p.x, p.y, p.z, 1));
+                        }
+                    }
+                } else if(args.length == 2) {
+                    if (parseInt(args[0]) >= config.bots.length) {
+                        console.log("Bot not found");
+                        break;
+                    }
+                    var b = config.bots[parseInt(args[0])].bot;
+                    var name = args[1];
+                    const mcData = require('minecraft-data')(b.version);
+                    const defaultMove = new Movements(b, mcData)
+                    if(name == b.username) return;
+
+                    const target = b.players[name] ? b.players[name].entity : null;
+                    if(!target) {
+                        console.log(`Bot ${b.username} cannot see player ${name} on the map`);
+                    } else {
+                        const p = target.position;
+                        b.pathfinder.setMovements(defaultMove);
+                        b.pathfinder.setGoal(new GoalNear(p.x, p.y, p.z, 1));
+                    }
+                } else {
+                    console.log("Usage: goto [#] <player>");
+                }
+                break;
+            case "new":
+                rl.close();
+                rl = null;
+                config.number_of_bots++;
+                startbots();
+                return;
             case "secret":
                 console.log("You are not ready for the secret".trap);
                 break;

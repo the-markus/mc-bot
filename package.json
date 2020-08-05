@@ -12,9 +12,10 @@
     "axios": "^0.19.2",
     "colors": "^1.4.0",
     "minecraft-protocol": "https://github.com/the-markus/node-minecraft-protocol/tarball/master",
-    "mineflayer": "^2.24.0",
+    "mineflayer": "^2.25.0",
+    "mineflayer-pathfinder": "^1.0.10",
     "prismarine-tokens": "^1.0.3",
     "prompt": "^1.0.0",
-    "uuid": "^8.2.0"
+    "uuid": "^8.3.0"
   }
 }

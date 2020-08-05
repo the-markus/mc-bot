@@ -9,3 +9,5 @@ A simple Minecraft bot based on [Mineflayer](https://github.com/PrismarineJS/min
 * Botsay (Let one bot say something)
 * Auto reconnect on kick
 * Manual reconnect
+* Go to player
+* Create new bots on the fly
